@@ -5,7 +5,8 @@ const chalk = require('chalk');
 const { execSync } = require('child_process');
 const semver = require('semver');
 
-if (process.env.SKIP_DB_CHECK) {
+// 如果设置 SKIP_DB_CHECK 或处于 CI 构建环境，则跳过数据库检查
+if (process.env.SKIP_DB_CHECK === 'true' || process.env.NETLIFY === 'true') {
   console.log('Skipping database check.');
   process.exit(0);
 }
@@ -41,7 +42,6 @@ async function checkEnv() {
 async function checkConnection() {
   try {
     await prisma.$connect();
-
     success('Database connection successful.');
   } catch (e) {
     throw new Error('Unable to connect to the database: ' + e.message);
@@ -66,7 +66,6 @@ async function checkDatabaseVersion() {
 
 async function checkV1Tables() {
   try {
-    // check for v1 migrations before v2 release date
     const record =
       await prisma.$queryRaw`select * from _prisma_migrations where started_at < '2023-04-17'`;
 
@@ -77,14 +76,13 @@ async function checkV1Tables() {
       process.exit(1);
     }
   } catch (e) {
-    // Ignore
+    // 忽略错误
   }
 }
 
 async function applyMigration() {
   if (!process.env.SKIP_DB_MIGRATION) {
     console.log(execSync('prisma migrate deploy').toString());
-
     success('Database is up to date.');
   }
 }
