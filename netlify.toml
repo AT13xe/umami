@@ -5,5 +5,5 @@ included_files = ["node_modules/.geo/**"]
 package = "@netlify/plugin-nextjs"
 
 [build]
-command = "yarn build"
+command = "yarn run build"
 publish = ".next"
